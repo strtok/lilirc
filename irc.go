@@ -1,16 +1,24 @@
 package main
 
 import "net"
+import "strings"
 
 type IRCEvent struct {
 	raw string
+	command string
+	args []string
 }
 
 func NewIRCEvent(raw string) *IRCEvent {
 
-	return &IRCEvent {
-				raw: raw,
-			 }
+	var newEvent IRCEvent
+        newEvent.raw = raw
+
+	tokens := strings.Split(raw, " ",  -1)
+	newEvent.command = tokens[0]
+	newEvent.args = tokens[1:]
+
+	return &newEvent
 }
 
 
