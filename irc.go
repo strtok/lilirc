@@ -46,5 +46,6 @@ func (conn IRCConn) ReadMessages() {
 }
 
 func (conn IRCConn) DispatchOrConsumeMessage(message *IRCMessage) {
+	logger.Logf("<- IRC: %s", message.raw)
 	conn.messageChannel <- message
 }

@@ -65,7 +65,9 @@ func StartGateway(conn *net.TCPConn) {
 
 	ircConn := NewIRCConn(conn, SERVERNAME)
 	lilyConn := NewLilyConn(LILYADDRESS)
-	logger.Log("connected! %s\n", lilyConn)
+
+	logger.Log("Connected %s", lilyConn.messageChannel)
+
 	for !closed(ircConn.MessageChannel()) {
 		select {
 			case ircMessage := <-ircConn.MessageChannel():
