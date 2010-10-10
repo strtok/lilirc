@@ -2,7 +2,6 @@ package main
 
 import "fmt"
 import "net"
-import "net/textproto"
 
 var (
    SERVERNAME = "irc.lily.com"
@@ -42,10 +41,10 @@ func NewClient(conn *net.TCPConn) {
    			  conn.RemoteAddr(), 
    			  conn.LocalAddr())
 
-//	ircConn := NewIRCConn(conn)   			  
-	textConn := textproto.NewConn(conn)
+	ircConn := NewIRCConn(conn)   			  
 
-    textConn.PrintfLine(":%s 001 :Welcome to lilirc!", SERVERNAME)
-     
+    for ev := range ircConn.eventChannel() {
+       fmt.Print(ev.raw)
+    }
 }
 
