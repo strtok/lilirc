@@ -1,6 +1,7 @@
 package main
 
 import "net"
+import "net/textproto"
 import "strings"
 
 type IRCEvent struct {
@@ -23,16 +24,26 @@ func NewIRCEvent(raw string) *IRCEvent {
 
 
 type IRCConn struct {
+	_serverName   string
 	_clientConn   *net.TCPConn
+	_clientText   *textproto.Conn
 	_eventChannel chan *IRCEvent
 }
 
 
-func NewIRCConn(conn *net.TCPConn) *IRCConn {
+func NewIRCConn(conn *net.TCPConn, serverName string) *IRCConn {
 	return &IRCConn{
-		_clientConn:   conn,
-		_eventChannel: nil,
+		_serverName: 	serverName,
+		_clientConn:  	conn,
+		_clientText:  	textproto.NewConn(conn),
+		_eventChannel: 	nil,
 	}
+}
+
+func (conn IRCConn) sendCode(code int) {
+	conn._clientText.PrintfLine(":%s %d :Error\r\n", 
+				    conn._serverName,
+				    code) 
 }
 
 func (conn IRCConn) eventChannel() chan *IRCEvent {

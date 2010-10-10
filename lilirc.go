@@ -42,10 +42,11 @@ func NewClient(conn *net.TCPConn) {
 		conn.RemoteAddr(),
 		conn.LocalAddr())
 
-	ircConn := NewIRCConn(conn)
+	ircConn := NewIRCConn(conn, SERVERNAME)
 
 	for ev := range ircConn.eventChannel() {
-		fmt.Printf("%s\n", ev.raw)
+		fmt.Printf("CMD: %s %s\n", ev.command, ev.args)
+		ircConn.sendCode(464)
 	}
 
 	fmt.Printf("client %s closed connection\n", conn.RemoteAddr())
