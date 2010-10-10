@@ -1,7 +1,18 @@
 package main
 
 import "io"
+import "net"
 import "net/textproto"
+
+type IRCConn struct {
+	clientConn *net.TCPConn
+}
+
+func NewIRCConn(conn *net.TCPConn) *IRCConn {
+	return &IRCConn {
+		conn,
+	}
+}
 
 func ReadLineIter(conn io.ReadWriteCloser) chan string {
  
