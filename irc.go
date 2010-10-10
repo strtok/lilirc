@@ -32,8 +32,11 @@ func (conn IRCConn) eventChannel() chan *IRCEvent {
 
 func (conn IRCConn) readEvents() {
    for line := range ReadLineIter(conn._clientConn) {
-      conn._eventChannel <- &IRCEvent{line}
+      conn._eventChannel <- &IRCEvent{ 
+      									raw: line, 
+      								 }
    }
    
+   //Client closed connection
    close(conn._eventChannel)
 }

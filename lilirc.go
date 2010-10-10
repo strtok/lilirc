@@ -44,7 +44,10 @@ func NewClient(conn *net.TCPConn) {
 	ircConn := NewIRCConn(conn)   			  
 
     for ev := range ircConn.eventChannel() {
-       fmt.Print(ev.raw)
+       fmt.Printf("%s\n", ev.raw)
     }
+    
+    fmt.Printf("client %s closed connection\n", conn.RemoteAddr())
+    
 }
 
