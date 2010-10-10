@@ -64,11 +64,11 @@ func StartGateway(conn *net.TCPConn) {
 
 	ircConn := NewIRCConn(conn, SERVERNAME)
 
-	for !closed(ircConn.eventChannel()) {
+	for !closed(ircConn.messageChannel()) {
 		select {
-			case ircEvent := <-ircConn.eventChannel():
-				if(ircEvent == nil) { break }
-				logger.Logf("CMD: %s %s\n", ircEvent.command, ircEvent.args)
+			case ircMessage := <-ircConn.messageChannel():
+				if(ircMessage == nil) { break }
+				logger.Logf("CMD: %s %s\n", ircMessage.command, ircMessage.args)
 		}
 	}
 
