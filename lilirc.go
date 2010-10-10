@@ -29,7 +29,7 @@ func main() {
 }
 
 
-func ReadLine(conn *net.TCPConn) chan string {
+func ReadLineIter(conn *net.TCPConn) chan string {
  
    ch := make(chan string)
    textConn := textproto.NewConn(conn)
@@ -54,7 +54,7 @@ func NewClient(conn *net.TCPConn) {
    			  conn.RemoteAddr(), 
    			  conn.LocalAddr())
    			  
-   for line := range ReadLine(conn) {
+   for line := range ReadLineIter(conn) {
       fmt.Printf("read: %s\n", line)
    } 
 }
