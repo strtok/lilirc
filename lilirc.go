@@ -1,24 +1,46 @@
 package main
 
-import "fmt"
+import "flag"
+import "log"
+import "os"
 import "net"
 
 var (
 	SERVERNAME = "irc.lily.com"
 )
 
-func main() {
+var logger *log.Logger;
 
-	listenAddress, err := net.ResolveTCPAddr("0.0.0.0:6667")
+func main() {
+	// read arguments
+	listen_addr := flag.String("listen", "0.0.0.0:6667",
+			"Port to listen for IRC connections on")
+	log_file := flag.String("log-file", "/dev/stdout", "Where to write log files")
+	flag.Parse()
+
+	// Set up logging
+	var outFile *os.File
+	if *log_file == "/dev/stdout" {
+		outFile = os.Stdout
+	} else {
+		var err os.Error
+		outFile, err = os.Open(*log_file, os.O_WRONLY | os.O_CREAT, 0755)
+		if err != nil {
+			log.Crash("Oh noes!")
+		}
+	}
+	logger = log.New(outFile, nil, "", log.Ldate | log.Ltime)
+
+	listenAddress, err := net.ResolveTCPAddr(*listen_addr)
 
 	if err != nil {
-		fmt.Print("failed creating listenAddress")
+		logger.Log("failed creating listenAddress")
 	}
 
 	listener, err := net.ListenTCP("tcp", listenAddress)
 
 	if err != nil {
-		fmt.Print("failed listening")
+		logger.Log("failed listening")
 	}
 
 	for {
@@ -26,7 +48,7 @@ func main() {
 		newConnection, err := listener.AcceptTCP()
 
 		if err != nil {
-			fmt.Print("failed accepting TCP connection")
+			logger.Log("failed accepting TCP connection")
 		}
 
 		go StartGateway(newConnection)
@@ -36,7 +58,7 @@ func main() {
 
 func StartGateway(conn *net.TCPConn) {
 
-	fmt.Printf("new client: %s->%s\n",
+	logger.Logf("new client: %s->%s\n",
 		conn.RemoteAddr(),
 		conn.LocalAddr())
 
@@ -46,10 +68,10 @@ func StartGateway(conn *net.TCPConn) {
 		select {
 			case ircEvent := <-ircConn.eventChannel():
 				if(ircEvent == nil) { break }
-				fmt.Printf("CMD: %s %s\n", ircEvent.command, ircEvent.args)
+				logger.Logf("CMD: %s %s\n", ircEvent.command, ircEvent.args)
 		}
 	}
 
-	fmt.Printf("client %s closed connection\n", conn.RemoteAddr())
+	logger.Logf("client %s closed connection\n", conn.RemoteAddr())
 
 }
