@@ -37,6 +37,7 @@ func main() {
 
 
 func NewClient(conn *net.TCPConn) {
+
 	fmt.Printf("new client: %s->%s\n",
 		conn.RemoteAddr(),
 		conn.LocalAddr())

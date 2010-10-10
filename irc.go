@@ -6,6 +6,14 @@ type IRCEvent struct {
 	raw string
 }
 
+func NewIRCEvent(raw string) *IRCEvent {
+
+	return &IRCEvent {
+				raw: raw,
+			 }
+}
+
+
 type IRCConn struct {
 	_clientConn   *net.TCPConn
 	_eventChannel chan *IRCEvent
@@ -32,11 +40,14 @@ func (conn IRCConn) eventChannel() chan *IRCEvent {
 
 func (conn IRCConn) readEvents() {
 	for line := range ReadLineIter(conn._clientConn) {
-		conn._eventChannel <- &IRCEvent{
-			raw: line,
-		}
+		event := NewIRCEvent(line)
+		conn.dispatchOrConsumeEvent(event)
 	}
 
 	//Client closed connection
 	close(conn._eventChannel)
+}
+
+func (conn IRCConn) dispatchOrConsumeEvent(event *IRCEvent) {
+	conn._eventChannel <- event
 }
