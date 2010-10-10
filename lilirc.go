@@ -1,11 +1,15 @@
 package main
 
 import "fmt"
-import "io"
 import "net"
 import "net/textproto"
 
+var (
+   SERVERNAME = "irc.lily.com"
+)
+
 func newClient()
+func sendIRCPreamble(conn *net.TCPConn)
 
 func main() {
 
@@ -31,32 +35,13 @@ func main() {
 }
 
 
-func ReadLineIter(conn io.ReadWriteCloser) chan string {
- 
-   ch := make(chan string)
-   textConn := textproto.NewConn(conn)
-   
-   go func() {
-      for {
-         line, err := textConn.ReadLine()
-         
-         if err != nil {
-            break
-         }
-         ch <- line
-      }
-      close(ch)
-   }()
-   
-   return ch
-}
-
 func NewClient(conn *net.TCPConn) {
-   fmt.Printf("new client: %s->%s\n", 
+	fmt.Printf("new client: %s->%s\n", 
    			  conn.RemoteAddr(), 
    			  conn.LocalAddr())
    			  
-   for line := range ReadLineIter(conn) {
-      fmt.Printf("read: %s\n", line)
-   } 
+	textConn := textproto.NewConn(conn)
+    textConn.PrintfLine(":%s 001 :Welcome to lilirc!", SERVERNAME)
+     
 }
+
