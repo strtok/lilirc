@@ -3,6 +3,7 @@ include $(GOROOT)/src/Make.inc
 TARG=lilirc
 GOFILES=\
 	irc.go\
+	irc_message.go\
 	lilirc.go\
 	util.go\
 
