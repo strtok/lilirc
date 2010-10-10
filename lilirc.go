@@ -7,6 +7,7 @@ import "net"
 
 var (
 	SERVERNAME = "irc.lily.com"
+	LILYADDRESS = "thales.strtok.net:7777"
 )
 
 var logger *log.Logger;
@@ -63,7 +64,8 @@ func StartGateway(conn *net.TCPConn) {
 		conn.LocalAddr())
 
 	ircConn := NewIRCConn(conn, SERVERNAME)
-
+	lilyConn := NewLilyConn(LILYADDRESS)
+	logger.Log("connected! %s\n", lilyConn)
 	for !closed(ircConn.MessageChannel()) {
 		select {
 			case ircMessage := <-ircConn.MessageChannel():
