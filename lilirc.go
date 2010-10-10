@@ -1,8 +1,10 @@
 package main
 
 import "fmt"
+import "io"
 import "net"
 import "net/textproto"
+
 func newClient()
 
 func main() {
@@ -29,7 +31,7 @@ func main() {
 }
 
 
-func ReadLineIter(conn *net.TCPConn) chan string {
+func ReadLineIter(conn io.ReadWriteCloser) chan string {
  
    ch := make(chan string)
    textConn := textproto.NewConn(conn)
