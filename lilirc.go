@@ -7,8 +7,6 @@ var (
 	SERVERNAME = "irc.lily.com"
 )
 
-func newClient()
-
 func main() {
 
 	listenAddress, err := net.ResolveTCPAddr("0.0.0.0:6667")
@@ -31,12 +29,12 @@ func main() {
 			fmt.Print("failed accepting TCP connection")
 		}
 
-		go NewClient(newConnection)
+		go StartGateway(newConnection)
 	}
 }
 
 
-func NewClient(conn *net.TCPConn) {
+func StartGateway(conn *net.TCPConn) {
 
 	fmt.Printf("new client: %s->%s\n",
 		conn.RemoteAddr(),
@@ -44,9 +42,12 @@ func NewClient(conn *net.TCPConn) {
 
 	ircConn := NewIRCConn(conn, SERVERNAME)
 
-	for ev := range ircConn.eventChannel() {
-		fmt.Printf("CMD: %s %s\n", ev.command, ev.args)
-		ircConn.sendCode(464)
+	for !closed(ircConn.eventChannel()) {
+		select {
+			case ircEvent := <-ircConn.eventChannel():
+				if(ircEvent == nil) { break }
+				fmt.Printf("CMD: %s %s\n", ircEvent.command, ircEvent.args)
+		}
 	}
 
 	fmt.Printf("client %s closed connection\n", conn.RemoteAddr())

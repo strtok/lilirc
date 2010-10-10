@@ -4,6 +4,8 @@ import "net"
 import "net/textproto"
 import "strings"
 
+
+
 type IRCEvent struct {
 	raw string
 	command string
@@ -31,13 +33,17 @@ type IRCConn struct {
 }
 
 
-func NewIRCConn(conn *net.TCPConn, serverName string) *IRCConn {
-	return &IRCConn{
-		_serverName: 	serverName,
-		_clientConn:  	conn,
-		_clientText:  	textproto.NewConn(conn),
-		_eventChannel: 	nil,
-	}
+func NewIRCConn(tcpConn *net.TCPConn, serverName string) *IRCConn {
+	var newConn IRCConn
+
+	newConn._eventChannel = make(chan *IRCEvent)
+	newConn._serverName = serverName
+	newConn._clientConn = tcpConn
+	newConn._clientText = textproto.NewConn(tcpConn)
+
+	go newConn.readEvents()
+
+	return &newConn
 }
 
 func (conn IRCConn) sendCode(code int) {
@@ -48,12 +54,6 @@ func (conn IRCConn) sendCode(code int) {
 
 func (conn IRCConn) eventChannel() chan *IRCEvent {
 
-	if conn._eventChannel != nil {
-		return conn._eventChannel
-	}
-
-	conn._eventChannel = make(chan *IRCEvent)
-	go conn.readEvents()
 	return conn._eventChannel
 }
 
