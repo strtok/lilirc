@@ -2,6 +2,7 @@ include $(GOROOT)/src/Make.inc
 
 TARG=lilirc
 GOFILES=\
+	dispatcher.go\
 	irc.go\
 	irc_message.go\
 	lilirc.go\

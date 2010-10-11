@@ -32,31 +32,49 @@ func NewLilyConn(address string) *LilyConn {
 	newLilyConn.messageChannel = make(chan *LilyMessage)
 
 	newLilyConn.SendOptions()
-	go newLilyConn.ReadMessages()
+	go newLilyConn.Dispatch()
 
 	return &newLilyConn
 }
 
-func (conn LilyConn) Send(line string) {
-	logger.Logf("-> LILY: %s", line)
-	conn.textConn.PrintfLine(line)
+func (conn *LilyConn) MessageChannel() chan *LilyMessage {
+	return conn.messageChannel
 }
 
-func (conn LilyConn) SendOptions() {
+func (conn *LilyConn) SendOptions() {
 	//Send options before all else
-	conn.Send("#$# options +version +prompt +prompt2 +leaf-notify +leaf-cmd +connected")
+	conn.textConn.PrintfLine("#$# options +version +prompt +prompt2 +leaf-notify +leaf-cmd +connected")
 }
 
-func (conn LilyConn) ReadMessages() {
-	for line := range ReadLineIter(conn.tcpConn) {
-		message := NewLilyMessage(line)
-		conn.DispatchOrConsumeMessage(message)
+func (conn *LilyConn) Dispatch() {
+
+	lilyChannel := ReadLineIter(conn.tcpConn)
+
+	for !closed(conn.messageChannel) && !closed(lilyChannel) {
+		select {
+
+			//Message to be sent
+			case incomingMessage := <-conn.messageChannel:
+				if(incomingMessage == nil) { break }
+				conn.textConn.PrintfLine(incomingMessage.raw)
+
+			//Handle raw line from lily socket
+			case line := <-lilyChannel:
+				if(len(line) == 0) { break }
+				outgoingMessage := NewLilyMessage(line)
+				conn.DispatchOrConsumeMessage(outgoingMessage)
+		}
 	}
 
 	//Server closed connection
 	close(conn.messageChannel)
 }
 
-func (conn LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
+func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 	logger.Logf("<- LILY: %s", message.raw)
+
+	switch(message.command) {
+		case "PROMPT":
+			conn.textConn.PrintfLine("");
+	}
 }

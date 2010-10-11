@@ -24,18 +24,18 @@ func NewIRCConn(tcpConn *net.TCPConn, serverName string) *IRCConn {
 	return &newConn
 }
 
-func (conn IRCConn) SendCode(code int) {
+func (conn *IRCConn) SendCode(code int) {
 	conn.clientText.PrintfLine(":%s %d :Error\r\n",
 				    conn.serverName,
 				    code)
 }
 
-func (conn IRCConn) MessageChannel() chan *IRCMessage {
+func (conn *IRCConn) MessageChannel() chan *IRCMessage {
 
 	return conn.messageChannel
 }
 
-func (conn IRCConn) ReadMessages() {
+func (conn *IRCConn) ReadMessages() {
 	for line := range ReadLineIter(conn.clientConn) {
 		message := NewIRCMessage(line)
 		conn.DispatchOrConsumeMessage(message)
@@ -45,7 +45,7 @@ func (conn IRCConn) ReadMessages() {
 	close(conn.messageChannel)
 }
 
-func (conn IRCConn) DispatchOrConsumeMessage(message *IRCMessage) {
+func (conn *IRCConn) DispatchOrConsumeMessage(message *IRCMessage) {
 	logger.Logf("<- IRC: %s", message.raw)
 	conn.messageChannel <- message
 }

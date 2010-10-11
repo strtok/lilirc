@@ -66,16 +66,12 @@ func StartGateway(conn *net.TCPConn) {
 	ircConn := NewIRCConn(conn, SERVERNAME)
 	lilyConn := NewLilyConn(LILYADDRESS)
 
-	logger.Log("Connected %s", lilyConn.messageChannel)
-
-	for !closed(ircConn.MessageChannel()) {
-		select {
-			case ircMessage := <-ircConn.MessageChannel():
-				if(ircMessage == nil) { break }
-				logger.Logf("CMD: %s %s\n", ircMessage.command, ircMessage.args)
-		}
+	if ircConn == nil || lilyConn == nil {
+		return
 	}
 
-	logger.Logf("client %s closed connection\n", conn.RemoteAddr())
+	dis := NewDispatcher(ircConn, lilyConn)
+	dis.Dispatch()
 
+	logger.Log("ending session")
 }

@@ -13,7 +13,7 @@ func NewIRCMessage(raw string) *IRCMessage {
 	var newMessage IRCMessage
         newMessage.raw = raw
 
-	tokens := strings.Split(raw, " ",  -1)
+	tokens := strings.Split(newMessage.raw, " ",  -1)
 	newMessage.command = tokens[0]
 	newMessage.args = tokens[1:]
 
