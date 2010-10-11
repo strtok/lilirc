@@ -37,6 +37,10 @@ func NewLilyConn(address string) *LilyConn {
 	return &newLilyConn
 }
 
+func (conn *LilyConn) Close() {
+	conn.tcpConn.Close()
+}
+
 func (conn *LilyConn) MessageChannel() chan *LilyMessage {
 	return conn.messageChannel
 }

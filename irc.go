@@ -4,10 +4,10 @@ import "net"
 import "net/textproto"
 
 type IRCConn struct {
-	serverName   string
-	clientConn   *net.TCPConn
-	clientText   *textproto.Conn
-	messageChannel chan *IRCMessage
+	serverName   	string
+	tcpConn   	*net.TCPConn
+	textConn   	*textproto.Conn
+	messageChannel 	chan *IRCMessage
 }
 
 
@@ -16,16 +16,20 @@ func NewIRCConn(tcpConn *net.TCPConn, serverName string) *IRCConn {
 
 	newConn.messageChannel = make(chan *IRCMessage)
 	newConn.serverName = serverName
-	newConn.clientConn = tcpConn
-	newConn.clientText = textproto.NewConn(tcpConn)
+	newConn.tcpConn = tcpConn
+	newConn.textConn = textproto.NewConn(tcpConn)
 
 	go newConn.ReadMessages()
 
 	return &newConn
 }
 
+func (conn *IRCConn) Close() {
+	conn.tcpConn.Close()
+}
+
 func (conn *IRCConn) SendCode(code int) {
-	conn.clientText.PrintfLine(":%s %d :Error\r\n",
+	conn.textConn.PrintfLine(":%s %d :Error\r\n",
 				    conn.serverName,
 				    code)
 }
@@ -36,7 +40,7 @@ func (conn *IRCConn) MessageChannel() chan *IRCMessage {
 }
 
 func (conn *IRCConn) ReadMessages() {
-	for line := range ReadLineIter(conn.clientConn) {
+	for line := range ReadLineIter(conn.tcpConn) {
 		message := NewIRCMessage(line)
 		conn.DispatchOrConsumeMessage(message)
 	}

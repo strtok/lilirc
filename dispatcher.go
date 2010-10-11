@@ -27,9 +27,8 @@ func (dis *Dispatcher) Dispatch() {
 	close(dis.ircConn.MessageChannel())
 	close(dis.lilyConn.MessageChannel()) 
 
-	dis.ircConn.clientConn.Close()
-	dis.lilyConn.tcpConn.Close()
-
+	dis.ircConn.Close()
+	dis.lilyConn.Close()
 }
 
 func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
