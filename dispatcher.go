@@ -14,6 +14,7 @@ func NewDispatcher(ircConn *IRCConn, lilyConn *LilyConn) *Dispatcher {
 }
 
 func (dis *Dispatcher) Dispatch() {
+
 	for !closed(dis.ircConn.MessageChannel()) &&
 	    !closed(dis.lilyConn.MessageChannel()) {
 		select {
@@ -22,6 +23,12 @@ func (dis *Dispatcher) Dispatch() {
 				dis.DispatchIRC(message)
 		}
 	}
+
+	close(dis.ircConn.MessageChannel())
+	close(dis.lilyConn.MessageChannel()) 
+
+	dis.ircConn.clientConn.Close()
+	dis.lilyConn.tcpConn.Close()
 
 }
 

@@ -66,8 +66,8 @@ func (conn *LilyConn) Dispatch() {
 		}
 	}
 
-	//Server closed connection
 	close(conn.messageChannel)
+	close(lilyChannel)
 }
 
 func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {

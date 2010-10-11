@@ -66,10 +66,6 @@ func StartGateway(conn *net.TCPConn) {
 	ircConn := NewIRCConn(conn, SERVERNAME)
 	lilyConn := NewLilyConn(LILYADDRESS)
 
-	if ircConn == nil || lilyConn == nil {
-		return
-	}
-
 	dis := NewDispatcher(ircConn, lilyConn)
 	dis.Dispatch()
 
