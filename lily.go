@@ -80,5 +80,7 @@ func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 	switch(message.command) {
 		case "PROMPT":
 			conn.textConn.PrintfLine("");
+		case "CONNECTED":
+			conn.messageChannel <- message
 	}
 }

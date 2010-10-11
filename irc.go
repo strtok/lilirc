@@ -19,7 +19,7 @@ func NewIRCConn(tcpConn *net.TCPConn, serverName string) *IRCConn {
 	newConn.tcpConn = tcpConn
 	newConn.textConn = textproto.NewConn(tcpConn)
 
-	go newConn.ReadMessages()
+	go newConn.Dispatch()
 
 	return &newConn
 }
@@ -39,17 +39,37 @@ func (conn *IRCConn) MessageChannel() chan *IRCMessage {
 	return conn.messageChannel
 }
 
-func (conn *IRCConn) ReadMessages() {
-	for line := range ReadLineIter(conn.tcpConn) {
-		message := NewIRCMessage(line)
-		conn.DispatchOrConsumeMessage(message)
+func (conn *IRCConn) Dispatch() {
+
+	ircChannel := ReadLineIter(conn.tcpConn)
+
+	for !closed(conn.messageChannel) && !closed(ircChannel) {
+		select {
+
+			//Message to be sent
+			case incomingMessage := <-conn.messageChannel:
+				if(incomingMessage == nil) { break }
+				conn.textConn.PrintfLine(incomingMessage.raw)
+
+			//Handle raw line from irc socket
+			case line := <-ircChannel:
+				if(len(line) == 0) { break }
+				outgoingMessage := NewIRCMessage(line)
+				conn.DispatchOrConsumeMessage(outgoingMessage)
+		}
 	}
 
-	//Client closed connection
 	close(conn.messageChannel)
+	close(ircChannel)
 }
 
 func (conn *IRCConn) DispatchOrConsumeMessage(message *IRCMessage) {
 	logger.Logf("<- IRC: %s", message.raw)
-	conn.messageChannel <- message
+
+	switch message.command {
+		case "PING":
+			conn.textConn.PrintfLine("PONG %s", message.args[0])
+		default:
+			conn.messageChannel <- message
+	}
 }

@@ -19,8 +19,12 @@ func (dis *Dispatcher) Dispatch() {
 	    !closed(dis.lilyConn.MessageChannel()) {
 		select {
 			case message := <-dis.ircConn.MessageChannel():
-				if(message == nil) { break }
+				if message == nil { break }
 				dis.DispatchIRC(message)
+
+			case message := <-dis.lilyConn.MessageChannel():
+				if message == nil { break }
+				dis.DispatchLily(message)
 		}
 	}
 
@@ -32,7 +36,7 @@ func (dis *Dispatcher) Dispatch() {
 }
 
 func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
-	switch(message.command) {
+	switch message.command {
 		case "PASS":
 			dis.ircPass = message.args[0]
 		case "NICK":
@@ -43,4 +47,12 @@ func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 			dis.lilyConn.MessageChannel() <- &LilyMessage{raw: dis.ircPass}
 	}
 
+}
+
+func (dis *Dispatcher) DispatchLily(message *LilyMessage) {
+	switch message.command {
+		//TODO: We may receive this even after connected!
+		case "CONNECTED":
+			dis.ircConn.MessageChannel() <- &IRCMessage { raw: ":" + SERVERNAME + " 001 " + dis.ircNick + " :Login successful!" }
+	}
 }

@@ -6,7 +6,7 @@ import "os"
 import "net"
 
 var (
-	SERVERNAME = "irc.lily.com"
+	SERVERNAME = "lily.irc"
 	LILYADDRESS = "thales.strtok.net:7777"
 )
 
