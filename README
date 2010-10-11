@@ -1,0 +1,6 @@
+COMPILE
+-------
+
+1. Edit lilirc.go and change LILYADDRESS to point to target lily
+2. Set $GOROOT to go's root (e.g. /home/user/go) and type 'make'
+
