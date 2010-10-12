@@ -2,6 +2,7 @@ package main
 
 import "io"
 import "net/textproto"
+import "time"
 
 func ReadLineIter(conn io.ReadWriteCloser) chan string {
 
@@ -20,5 +21,14 @@ func ReadLineIter(conn io.ReadWriteCloser) chan string {
 		close(ch)
 	}()
 
+	return ch
+}
+
+func Timer(ms int64) chan bool {
+	ch := make(chan bool, 1)
+	go func() {
+		time.Sleep(ms * 1e6)
+		ch <- true
+	}()
 	return ch
 }

@@ -37,6 +37,7 @@ func (conn *IRCConn) SendCode(code int) {
 				    code)
 }
 
+
 func (conn *IRCConn) Dispatch() {
 
 	tcpChannel := ReadLineIter(conn.tcpConn)

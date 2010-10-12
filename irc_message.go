@@ -5,6 +5,7 @@ import "strings"
 type IRCMessage struct {
 	raw	string
 	command string
+	target 	string
 	args []	string
 	text	string
 }
