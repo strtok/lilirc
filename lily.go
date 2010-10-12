@@ -6,7 +6,8 @@ import "net/textproto"
 type LilyConn struct {
 	tcpConn	*net.TCPConn
 	textConn *textproto.Conn
-	messageChannel chan *LilyMessage
+	incomingChannel chan *LilyMessage
+	outgoingChannel chan *LilyMessage
 }
 
 func NewLilyConn(address string) *LilyConn {
@@ -29,8 +30,8 @@ func NewLilyConn(address string) *LilyConn {
 
 	newLilyConn.tcpConn = tcpConn
 	newLilyConn.textConn = textproto.NewConn(tcpConn)
-	newLilyConn.messageChannel = make(chan *LilyMessage)
-
+	newLilyConn.incomingChannel = make(chan *LilyMessage, 100)
+	newLilyConn.outgoingChannel = make(chan *LilyMessage, 100)
 	newLilyConn.SendOptions()
 	go newLilyConn.Dispatch()
 
@@ -41,10 +42,6 @@ func (conn *LilyConn) Close() {
 	conn.tcpConn.Close()
 }
 
-func (conn *LilyConn) MessageChannel() chan *LilyMessage {
-	return conn.messageChannel
-}
-
 func (conn *LilyConn) SendOptions() {
 	//Send options before all else
 	conn.textConn.PrintfLine("#$# options +version +prompt +prompt2 +leaf-notify +leaf-cmd +connected")
@@ -52,26 +49,28 @@ func (conn *LilyConn) SendOptions() {
 
 func (conn *LilyConn) Dispatch() {
 
-	lilyChannel := ReadLineIter(conn.tcpConn)
+	tcpChannel := ReadLineIter(conn.tcpConn)
 
-	for !closed(conn.messageChannel) && !closed(lilyChannel) {
+	for !closed(conn.incomingChannel) && !closed(conn.outgoingChannel) && !closed(tcpChannel) {
 		select {
 
 			//Message to be sent
-			case incomingMessage := <-conn.messageChannel:
-				if(incomingMessage == nil) { break }
-				conn.textConn.PrintfLine(incomingMessage.raw)
+			case outgoingMessage := <-conn.outgoingChannel:
+				if(outgoingMessage == nil) { break }
+				logger.Logf("-> LILY: %s", outgoingMessage.raw)
+				conn.textConn.PrintfLine(outgoingMessage.raw)
 
 			//Handle raw line from lily socket
-			case line := <-lilyChannel:
+			case line := <-tcpChannel:
 				if(len(line) == 0) { break }
-				outgoingMessage := NewLilyMessage(line)
-				conn.DispatchOrConsumeMessage(outgoingMessage)
+				incomingMessage := NewLilyMessage(line)
+				conn.DispatchOrConsumeMessage(incomingMessage)
 		}
 	}
 
-	close(conn.messageChannel)
-	close(lilyChannel)
+	close(conn.incomingChannel)
+	close(conn.outgoingChannel)
+	close(tcpChannel)
 }
 
 func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
@@ -81,6 +80,6 @@ func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 		case "PROMPT":
 			conn.textConn.PrintfLine("");
 		case "CONNECTED":
-			conn.messageChannel <- message
+			conn.incomingChannel <- message
 	}
 }

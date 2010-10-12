@@ -4,17 +4,20 @@ import "net"
 import "net/textproto"
 
 type IRCConn struct {
-	serverName   	string
-	tcpConn   	*net.TCPConn
-	textConn   	*textproto.Conn
-	messageChannel 	chan *IRCMessage
+	serverName	string
+	tcpConn		*net.TCPConn
+	textConn	*textproto.Conn
+	incomingChannel	chan *IRCMessage
+	outgoingChannel	chan *IRCMessage
 }
 
 
 func NewIRCConn(tcpConn *net.TCPConn, serverName string) *IRCConn {
 	var newConn IRCConn
 
-	newConn.messageChannel = make(chan *IRCMessage)
+	newConn.incomingChannel = make(chan *IRCMessage, 100)
+	newConn.outgoingChannel = make(chan *IRCMessage, 100)
+
 	newConn.serverName = serverName
 	newConn.tcpConn = tcpConn
 	newConn.textConn = textproto.NewConn(tcpConn)
@@ -34,33 +37,30 @@ func (conn *IRCConn) SendCode(code int) {
 				    code)
 }
 
-func (conn *IRCConn) MessageChannel() chan *IRCMessage {
-
-	return conn.messageChannel
-}
-
 func (conn *IRCConn) Dispatch() {
 
-	ircChannel := ReadLineIter(conn.tcpConn)
+	tcpChannel := ReadLineIter(conn.tcpConn)
 
-	for !closed(conn.messageChannel) && !closed(ircChannel) {
+	for !closed(conn.incomingChannel) && !closed(conn.outgoingChannel) && !closed(tcpChannel) {
 		select {
 
 			//Message to be sent
-			case incomingMessage := <-conn.messageChannel:
-				if(incomingMessage == nil) { break }
-				conn.textConn.PrintfLine(incomingMessage.raw)
+			case outgoingMessage := <-conn.outgoingChannel:
+				if(outgoingMessage == nil) { break }
+				logger.Logf("-> IRC: %s", outgoingMessage.raw)
+				conn.textConn.PrintfLine(outgoingMessage.raw)
 
 			//Handle raw line from irc socket
-			case line := <-ircChannel:
+			case line := <-tcpChannel:
 				if(len(line) == 0) { break }
-				outgoingMessage := NewIRCMessage(line)
-				conn.DispatchOrConsumeMessage(outgoingMessage)
+				incomingMessage := NewIRCMessage(line)
+				conn.DispatchOrConsumeMessage(incomingMessage)
 		}
 	}
 
-	close(conn.messageChannel)
-	close(ircChannel)
+	close(conn.incomingChannel)
+	close(conn.outgoingChannel)
+	close(tcpChannel)
 }
 
 func (conn *IRCConn) DispatchOrConsumeMessage(message *IRCMessage) {
@@ -70,6 +70,6 @@ func (conn *IRCConn) DispatchOrConsumeMessage(message *IRCMessage) {
 		case "PING":
 			conn.textConn.PrintfLine("PONG %s", message.args[0])
 		default:
-			conn.messageChannel <- message
+			conn.incomingChannel <- message
 	}
 }
