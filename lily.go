@@ -91,11 +91,21 @@ func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 			conn.incomingChannel <- message
 		case "USER":
 			conn.DispatchUserUpdate(message)
+		case "NOTIFY":
+			conn.DispatchNotify(message)
 	}
 }
 
 func (conn *LilyConn) DispatchUserUpdate(message *LilyMessage) {
 	//Example:
 	//%USER HANDLE=#100 NAME=14=System Manager BLURB=0= LOGIN=1286726924 INPUT=1286747362 STATE=detach ATTRIB=0= PRONOUN=5=their
+
+	handle := message.attributes["HANDLE"]
+	name := message.attributes["NAME"]
+
+	conn.userMap[handle] = &LilyUser{ name: name }
+}
+
+func (conn *LilyConn) DispatchNotify(message *LilyMessage) {
 
 }
