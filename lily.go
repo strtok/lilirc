@@ -3,11 +3,19 @@ package main
 import "net"
 import "net/textproto"
 
+type LilyUser struct {
+	name string
+}
+
 type LilyConn struct {
 	tcpConn	*net.TCPConn
 	textConn *textproto.Conn
 	incomingChannel chan *LilyMessage
 	outgoingChannel chan *LilyMessage
+
+	//Map of user id (e.g. #105) to LilyUser.
+	//This map is kept up to date from %USER messages
+	userMap map[string] *LilyUser
 }
 
 func NewLilyConn(address string) *LilyConn {
@@ -81,5 +89,13 @@ func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 			conn.textConn.PrintfLine("");
 		case "CONNECTED":
 			conn.incomingChannel <- message
+		case "USER":
+			conn.DispatchUserUpdate(message)
 	}
+}
+
+func (conn *LilyConn) DispatchUserUpdate(message *LilyMessage) {
+	//Example:
+	//%USER HANDLE=#100 NAME=14=System Manager BLURB=0= LOGIN=1286726924 INPUT=1286747362 STATE=detach ATTRIB=0= PRONOUN=5=their
+
 }
