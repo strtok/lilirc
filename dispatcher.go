@@ -60,5 +60,12 @@ func (dis *Dispatcher) DispatchLily(message *LilyMessage) {
 		//TODO: We may receive this even after connected!
 		case "CONNECTED":
 			dis.ircConn.outgoingChannel <- &IRCMessage { raw: ":" + SERVERNAME + " 001 " + dis.ircNick + " :Login successful!" }
+		case "NOTIFY":
+			if event, present := message.attributes["EVENT"] ; present {
+				switch event {
+					case "private":
+						dis.ircConn.outgoingChannel <- &IRCMessage { raw: ":" + message.source + " PRIVMSG " + dis.ircNick + " :" + message.attributes["VALUE"] }
+				}
+			}
 	}
 }

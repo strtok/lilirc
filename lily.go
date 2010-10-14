@@ -47,6 +47,14 @@ func NewLilyConn(address string) *LilyConn {
 	return &newLilyConn
 }
 
+func (conn *LilyConn) UserMap(name string) string {
+	user, ok := conn.userMap[name]
+	if(ok) {
+		return user.name
+	}
+	return ""
+}
+
 func (conn *LilyConn) Close() {
 	conn.tcpConn.Close()
 }
@@ -72,7 +80,7 @@ func (conn *LilyConn) Dispatch() {
 			//Handle raw line from lily socket
 			case line := <-tcpChannel:
 				if(len(line) == 0) { break }
-				incomingMessage := NewLilyMessage(line)
+				incomingMessage := NewLilyMessage(line, func(name string) string { return conn.UserMap(name) } )
 				conn.DispatchOrConsumeMessage(incomingMessage)
 		}
 	}
@@ -108,5 +116,5 @@ func (conn *LilyConn) DispatchUserUpdate(message *LilyMessage) {
 }
 
 func (conn *LilyConn) DispatchNotify(message *LilyMessage) {
-
+	conn.incomingChannel <- message
 }

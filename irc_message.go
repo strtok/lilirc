@@ -19,7 +19,6 @@ func NewIRCMessage(raw string) *IRCMessage {
 	msgPos := strings.Index(raw, ":")
 
 	if msgPos != -1 {
-
 		//Split out args and text
 		textSplit := strings.Split(raw, ":", 2)
 

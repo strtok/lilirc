@@ -7,9 +7,12 @@ type LilyMessage struct {
 	raw string
 	command string
 	attributes map[string] string
+
+	source string
+	recip string
 }
 
-func NewLilyMessage(line string) *LilyMessage {
+func NewLilyMessage(line string, userMap func(string) string) *LilyMessage {
 
 	if !strings.HasPrefix(line, "%") {
 		return &LilyMessage {raw: line }
@@ -22,8 +25,19 @@ func NewLilyMessage(line string) *LilyMessage {
 				      command: command,
 				      attributes: make(map[string] string) }
 	lilyMessage.ParseLilyMap()
+	lilyMessage.MapNames(userMap)
 
 	return lilyMessage
+}
+
+func (lilyMessage *LilyMessage) MapNames(userMap func(string) string) {
+	if _, present := lilyMessage.attributes["SOURCE"] ; present {
+		lilyMessage.source = userMap(lilyMessage.attributes["SOURCE"])
+	}
+
+	if _, present := lilyMessage.attributes["RECIPS"] ; present {
+		lilyMessage.recip = userMap(lilyMessage.attributes["RECIPS"])
+	}
 }
 
 func (lilyMessage *LilyMessage) ParseLilyMap() {
@@ -49,12 +63,15 @@ func (lilyMessage *LilyMessage) ParseLilyMap() {
 	for i,c := range mapString {
 		switch state {
 			case KEY:
-				if(c == '=') {
-					key = mapString[keyStart:i]
+				switch c {
+					case ' ':
+						keyStart = i + 1
+					case '=':
+						key = mapString[keyStart:i]
 
-					valueStart = i + 1
-					keyStart = 0
-					state = VALUE
+						valueStart = i + 1
+						keyStart = 0
+						state = VALUE
 				}
 			case VALUE:
 				switch c {
@@ -70,7 +87,7 @@ func (lilyMessage *LilyMessage) ParseLilyMap() {
 						state = SEEK_NEXT_KEY
 				}
 			case VALUE_SIZE:
-				if(uint(i - valueStart) + 1 == valueSize) {
+				if uint(i - valueStart) + 1 == valueSize {
 					value = mapString[valueStart:i + 1]
 					lilyMessage.attributes[key] = value
 					valueStart = 0
@@ -78,7 +95,7 @@ func (lilyMessage *LilyMessage) ParseLilyMap() {
 					state = SEEK_NEXT_KEY
 				}
 			case SEEK_NEXT_KEY:
-				if(c != ' ') {
+				if c != ' '  {
 					keyStart = i
 					state = KEY
 				}
