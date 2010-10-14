@@ -21,14 +21,12 @@ func NewLilyMessage(line string) *LilyMessage {
 	lilyMessage := &LilyMessage { raw: line,
 				      command: command,
 				      attributes: make(map[string] string) }
-	ParseLilyMap(lilyMessage)
-
-	logger.Log(lilyMessage.attributes)
+	lilyMessage.ParseLilyMap()
 
 	return lilyMessage
 }
 
-func ParseLilyMap(lilyMessage *LilyMessage) {
+func (lilyMessage *LilyMessage) ParseLilyMap() {
 
 	mapString := lilyMessage.raw[strings.Index(lilyMessage.raw, " ") + 1:]
 

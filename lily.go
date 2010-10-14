@@ -40,6 +40,7 @@ func NewLilyConn(address string) *LilyConn {
 	newLilyConn.textConn = textproto.NewConn(tcpConn)
 	newLilyConn.incomingChannel = make(chan *LilyMessage, 100)
 	newLilyConn.outgoingChannel = make(chan *LilyMessage, 100)
+	newLilyConn.userMap = make(map[string] *LilyUser)
 	newLilyConn.SendOptions()
 	go newLilyConn.Dispatch()
 
