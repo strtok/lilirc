@@ -59,11 +59,15 @@ func (dis *Dispatcher) DispatchLily(message *LilyMessage) {
 		case "CONNECTED":
 			dis.ircConn.outgoingChannel <- &IRCMessage { raw: ":" + SERVERNAME + " 001 " + dis.ircNick + " :Login successful!" }
 		case "NOTIFY":
-			if event, present := message.attributes["EVENT"] ; present {
-				switch event {
-					case "private":
-						dis.ircConn.SendPrivateMessage(message.source, dis.ircNick, message.attributes["VALUE"])
-				}
-			}
+			dis.DispatchLilyNotify(message)
+	}
+}
+
+func (dis *Dispatcher) DispatchLilyNotify(message *LilyMessage) {
+	if event, present := message.attributes["EVENT"] ; present {
+		switch event {
+			case "private":
+				dis.ircConn.SendPrivateMessage(message.source, dis.ircNick, message.attributes["VALUE"])
+		}
 	}
 }
