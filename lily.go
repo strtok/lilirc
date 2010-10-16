@@ -70,10 +70,6 @@ func (conn *LilyConn) SendOptions() {
 	conn.textConn.PrintfLine("#$# options +version +prompt +prompt2 +leaf-notify +leaf-cmd +connected")
 }
 
-func (conn *LilyConn) SendWhereAmI() {
-	conn.textConn.PrintfLine("/where")
-}
-
 func (conn *LilyConn) Dispatch() {
 
 	tcpChannel := ReadLineIter(conn.tcpConn)
@@ -105,10 +101,10 @@ func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 
 	switch(message.command) {
 		case "PROMPT":
-			conn.textConn.PrintfLine("");
+			conn.textConn.PrintfLine("")
 		case "CONNECTED":
+			conn.textConn.PrintfLine("/where")
 			conn.incomingChannel <- message
-			conn.SendWhereAmI()
 		case "USER":
 			conn.DispatchUserUpdate(message)
 		case "NOTIFY":
