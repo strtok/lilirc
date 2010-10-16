@@ -62,7 +62,7 @@ func (dis *Dispatcher) DispatchLily(message *LilyMessage) {
 			if event, present := message.attributes["EVENT"] ; present {
 				switch event {
 					case "private":
-						dis.ircConn.outgoingChannel <- &IRCMessage { raw: ":" + message.source + " PRIVMSG " + dis.ircNick + " :" + message.attributes["VALUE"] }
+						dis.ircConn.SendPrivateMessage(message.source, dis.ircNick, message.attributes["VALUE"])
 				}
 			}
 	}
