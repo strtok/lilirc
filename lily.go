@@ -41,7 +41,9 @@ func NewLilyConn(address string) *LilyConn {
 	newLilyConn.incomingChannel = make(chan *LilyMessage, 100)
 	newLilyConn.outgoingChannel = make(chan *LilyMessage, 100)
 	newLilyConn.userMap = make(map[string] *LilyUser)
+
 	newLilyConn.SendOptions()
+
 	go newLilyConn.Dispatch()
 
 	return &newLilyConn
@@ -66,6 +68,10 @@ func (conn *LilyConn) Send(raw string) {
 func (conn *LilyConn) SendOptions() {
 	//Send options before all else
 	conn.textConn.PrintfLine("#$# options +version +prompt +prompt2 +leaf-notify +leaf-cmd +connected")
+}
+
+func (conn *LilyConn) SendWhereAmI() {
+	conn.textConn.PrintfLine("/where")
 }
 
 func (conn *LilyConn) Dispatch() {
@@ -102,6 +108,7 @@ func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 			conn.textConn.PrintfLine("");
 		case "CONNECTED":
 			conn.incomingChannel <- message
+			conn.SendWhereAmI()
 		case "USER":
 			conn.DispatchUserUpdate(message)
 		case "NOTIFY":
