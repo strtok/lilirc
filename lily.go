@@ -59,6 +59,10 @@ func (conn *LilyConn) Close() {
 	conn.tcpConn.Close()
 }
 
+func (conn *LilyConn) Send(raw string) {
+	conn.outgoingChannel <- &LilyMessage{raw: raw}
+}
+
 func (conn *LilyConn) SendOptions() {
 	//Send options before all else
 	conn.textConn.PrintfLine("#$# options +version +prompt +prompt2 +leaf-notify +leaf-cmd +connected")

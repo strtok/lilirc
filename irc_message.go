@@ -5,8 +5,8 @@ import "strings"
 type IRCMessage struct {
 	raw	string
 	command string
-	target 	string
-	args []	string
+	target	string
+	args [] string
 	text	string
 }
 
@@ -28,11 +28,19 @@ func NewIRCMessage(raw string) *IRCMessage {
 		//Split everything before : into args
 		tokens := strings.Split(textSplit[0], " ", -1)
 		newMessage.command = tokens[0]
-		newMessage.args = tokens[1:]
+
+		if len(tokens) >= 1 {
+			newMessage.target = tokens[1]
+			newMessage.args = tokens[1:]
+		}
+
 	} else {
 		tokens := strings.Split(newMessage.raw, " ",  -1)
 		newMessage.command = tokens[0]
-		newMessage.args = tokens[1:]
+
+		if len(tokens) >= 1 {
+			newMessage.args = tokens[1:]
+		}
 	}
 
 	return &newMessage

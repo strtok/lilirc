@@ -14,7 +14,6 @@ func NewDispatcher(ircConn *IRCConn, lilyConn *LilyConn) *Dispatcher {
 }
 
 func (dis *Dispatcher) Dispatch() {
-
 	for !closed(dis.ircConn.incomingChannel) &&
 	    !closed(dis.lilyConn.incomingChannel) {
 		select {
@@ -39,7 +38,6 @@ func (dis *Dispatcher) Dispatch() {
 }
 
 func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
-	logger.Logf("DISPATCH: %s", message.command)
 	switch message.command {
 		case "PASS":
 			dis.ircPass = message.args[0]
@@ -47,10 +45,10 @@ func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 			dis.ircNick = message.args[0]
 		case "USER":
 			//Send user and pass to lily
-			dis.lilyConn.outgoingChannel <- &LilyMessage{raw: dis.ircNick}
-			dis.lilyConn.outgoingChannel <- &LilyMessage{raw: dis.ircPass}
+			dis.lilyConn.Send(dis.ircNick)
+			dis.lilyConn.Send(dis.ircPass)
 		case "PRIVMSG":
-			dis.lilyConn.outgoingChannel <- &LilyMessage{raw: message.args[0] + ";" + message.text}
+			dis.lilyConn.Send(message.target + ";" + message.text)
 	}
 
 }

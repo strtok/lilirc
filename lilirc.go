@@ -7,7 +7,7 @@ import "net"
 
 var (
 	SERVERNAME = "lily.irc"
-	LILYADDRESS = "thales.strtok.net:7777"
+	LILYADDRESS = "127.0.0.1:7777"
 )
 
 var logger *log.Logger;
