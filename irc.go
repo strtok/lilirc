@@ -1,5 +1,6 @@
 package main
 
+import "fmt"
 import "net"
 import "net/textproto"
 
@@ -37,6 +38,10 @@ func (conn *IRCConn) SendCode(code int) {
 				    code)
 }
 
+func (conn *IRCConn) SendPrivateMessage(source string, target string, text string) {
+	raw := fmt.Sprintf(":%s PRIVMSG %s :%s", source, target, text)
+	conn.outgoingChannel <- &IRCMessage{raw: raw}
+}
 
 func (conn *IRCConn) Dispatch() {
 
