@@ -48,7 +48,13 @@ func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 			dis.lilyConn.Send(dis.ircNick)
 			dis.lilyConn.Send(dis.ircPass)
 		case "PRIVMSG":
-			dis.lilyConn.Send(message.target + ";" + message.text)
+			var target string
+			if message.target[0] == '#' {
+				target = message.target[1:]
+			} else {
+				target = message.target
+			}
+			dis.lilyConn.Send(target + ";" + message.text)
 	}
 
 }
