@@ -37,6 +37,10 @@ func (dis *Dispatcher) Dispatch() {
 	dis.lilyConn.Close()
 }
 
+//
+// BEGIN IRC -> LILY TRANSLATORS
+//
+
 func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 	switch message.command {
 		case "PASS":
@@ -61,6 +65,10 @@ func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 	}
 
 }
+
+//
+// BEGIN LILY -> IRC TRANSLATORS
+//
 
 func (dis *Dispatcher) DispatchLily(message *LilyMessage) {
 	switch message.command {
