@@ -32,3 +32,17 @@ func Timer(ms int64) chan bool {
 	}()
 	return ch
 }
+
+func IRCToLily(name string) string {
+	if name[0] == '#' {
+		return "-" + name[1:]
+	}
+	return name
+}
+
+func LilyToIRC(name string) string {
+	if name[0] == '-' {
+		return "#" + name[1:]
+	}
+	return name
+}

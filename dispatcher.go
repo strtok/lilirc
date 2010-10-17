@@ -55,13 +55,7 @@ func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 			//Private messages from IRC look identical whether to 
 			//a user or channel. If to a channel, replace the # (indicating 
 			//channel) with a '-' (lily syntax for a discussion
-			var target string
-			if message.target[0] == '#' {
-				target = "-" + message.target[1:]
-			} else {
-				target = message.target
-			}
-			dis.lilyConn.Send(target + ";" + message.text)
+			dis.lilyConn.Send(IRCToLily(message.target) + ";" + message.text)
 	}
 
 }
