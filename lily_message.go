@@ -26,7 +26,7 @@ func NewLilyMessage(line string, userMap func(string) string) *LilyMessage {
 				      attributes: make(map[string] string) }
 	lilyMessage.ParseLilyMap()
 	lilyMessage.MapNames(userMap)
-
+	logger.Log(lilyMessage.attributes)
 	return lilyMessage
 }
 

@@ -68,6 +68,8 @@ func (dis *Dispatcher) DispatchLilyNotify(message *LilyMessage) {
 		switch event {
 			case "private":
 				dis.ircConn.SendPrivateMessage(message.source, dis.ircNick, message.attributes["VALUE"])
+			case "public":
+				dis.ircConn.SendPrivateMessage(message.source, "#" + message.recip, message.attributes["VALUE"])
 		}
 	}
 }

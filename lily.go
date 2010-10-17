@@ -3,7 +3,7 @@ package main
 import "net"
 import "net/textproto"
 
-type LilyUser struct {
+type LilyHandle struct {
 	name string
 }
 
@@ -15,7 +15,7 @@ type LilyConn struct {
 
 	//Map of user id (e.g. #105) to LilyUser.
 	//This map is kept up to date from %USER messages
-	userMap map[string] *LilyUser
+	handleMap map[string] *LilyHandle
 }
 
 func NewLilyConn(address string) *LilyConn {
@@ -40,7 +40,7 @@ func NewLilyConn(address string) *LilyConn {
 	newLilyConn.textConn = textproto.NewConn(tcpConn)
 	newLilyConn.incomingChannel = make(chan *LilyMessage, 100)
 	newLilyConn.outgoingChannel = make(chan *LilyMessage, 100)
-	newLilyConn.userMap = make(map[string] *LilyUser)
+	newLilyConn.handleMap = make(map[string] *LilyHandle)
 
 	newLilyConn.SendOptions()
 
@@ -49,10 +49,10 @@ func NewLilyConn(address string) *LilyConn {
 	return &newLilyConn
 }
 
-func (conn *LilyConn) UserMap(name string) string {
-	user, ok := conn.userMap[name]
+func (conn *LilyConn) HandleMap(name string) string {
+	handle, ok := conn.handleMap[name]
 	if(ok) {
-		return user.name
+		return handle.name
 	}
 	return ""
 }
@@ -86,7 +86,7 @@ func (conn *LilyConn) Dispatch() {
 			//Handle raw line from lily socket
 			case line := <-tcpChannel:
 				if(len(line) == 0) { break }
-				incomingMessage := NewLilyMessage(line, func(name string) string { return conn.UserMap(name) } )
+				incomingMessage := NewLilyMessage(line, func(name string) string { return conn.HandleMap(name) } )
 				conn.DispatchOrConsumeMessage(incomingMessage)
 		}
 	}
@@ -105,21 +105,21 @@ func (conn *LilyConn) DispatchOrConsumeMessage(message *LilyMessage) {
 		case "CONNECTED":
 			conn.textConn.PrintfLine("/where")
 			conn.incomingChannel <- message
-		case "USER":
-			conn.DispatchUserUpdate(message)
+		case "USER", "DISC":
+			conn.DispatchHandleUpdate(message)
 		case "NOTIFY":
 			conn.DispatchNotify(message)
 	}
 }
 
-func (conn *LilyConn) DispatchUserUpdate(message *LilyMessage) {
+func (conn *LilyConn) DispatchHandleUpdate(message *LilyMessage) {
 	//Example:
 	//%USER HANDLE=#100 NAME=14=System Manager BLURB=0= LOGIN=1286726924 INPUT=1286747362 STATE=detach ATTRIB=0= PRONOUN=5=their
 
 	handle := message.attributes["HANDLE"]
 	name := message.attributes["NAME"]
 
-	conn.userMap[handle] = &LilyUser{ name: name }
+	conn.handleMap[handle] = &LilyHandle{ name: name }
 }
 
 func (conn *LilyConn) DispatchNotify(message *LilyMessage) {
