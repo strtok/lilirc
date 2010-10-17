@@ -53,7 +53,7 @@ func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 			//channel) with a '-' (lily syntax for a discussion
 			var target string
 			if message.target[0] == '#' {
-				target = message.target[1:]
+				target = "-" + message.target[1:]
 			} else {
 				target = message.target
 			}
