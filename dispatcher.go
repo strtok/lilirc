@@ -48,6 +48,9 @@ func (dis *Dispatcher) DispatchIRC(message *IRCMessage) {
 			dis.lilyConn.Send(dis.ircNick)
 			dis.lilyConn.Send(dis.ircPass)
 		case "PRIVMSG":
+			//Private messages from IRC look identical whether to 
+			//a user or channel. If to a channel, replace the # (indicating 
+			//channel) with a '-' (lily syntax for a discussion
 			var target string
 			if message.target[0] == '#' {
 				target = message.target[1:]
